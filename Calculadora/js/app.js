@@ -15,6 +15,7 @@ var Calculator= {
     SecondOperator: undefined,
     PointAdded: false,
     Operation: undefined,
+    Executing: false,
 
     ShowData: function() {
         if ( PrintObject != undefined ) {
@@ -50,24 +51,33 @@ var Calculator= {
 
     AddPoint: function() {
         if ( !PointAdded && (CurrValue.length <= ((!PointAdded ? 8 : 9) - 1) || this.CurrValue.length == undefined ) ) {
-            CurrValue += ".";
+            CurrValue += (CurrValue.length == 0 ? "0." : ".");
             PointAdded = true;
         }
     },
 
+    SetExecuting: function(value) {
+        Executing = value;
+    },
+
     SetOperation: function(operationValue) {
-        if ( CurrValue != undefined ) {
-            Operation = operationValue;
+        if ( CurrValue != undefined && CurrValue != "" && CurrValue != null ) {
+            Executing = false;
+            if ( FirstOperator != undefined && SecondOperator == undefined ) {
+                ExecuteOperation();
+            }
             FirstOperator = parseFloat(CurrValue);
+            SecondOperator = undefined;
             CurrValue = "";
             PointAdded = false;
         }
+        Operation = operationValue;
     },
 
     ExecuteOperation: function() {
-        if ( (FirstOperator != undefined && FirstOperator != 0 ) && 
-             (CurrValue != undefined && parseFloat(CurrValue) != 0 ) ) {
-            SecondOperator = parseFloat(CurrValue);
+        if ( (FirstOperator != undefined && FirstOperator != "" && FirstOperator != null) && 
+             (CurrValue != undefined && CurrValue != "" && CurrValue != null) ) {
+            SecondOperator = (SecondOperator == undefined || !Executing ? parseFloat(CurrValue) : SecondOperator);
 
             switch(Operation) {
                 case ConstantAction.Sum:
@@ -88,9 +98,10 @@ var Calculator= {
                     break;
             }
 
-            Operation = undefined;
-            SecondOperator = undefined;
+            CurrValue = ( CurrValue.toString().length >= 9 ? CurrValue.toString().substr(1, 8) : CurrValue );
+            FirstOperator = ( !isNaN(CurrValue) ? CurrValue : undefined );
             PointAdded = false;
+            SecondOperator = ( !Executing ? undefined : SecondOperator );
         }
     }
 }
@@ -102,7 +113,6 @@ function executeWithCallback(actionMethodWithoutParms) {
     actionMethodWithoutParms();
     objCalculator.ShowData();
 }
-
 function Initializing() {
     executeWithCallback(objCalculator.Initialize);
 }
@@ -133,6 +143,7 @@ function SendDivide() {
     objCalculator.ShowData();
 }
 function ExecuteOperation() {
+    objCalculator.SetExecuting(true);
     executeWithCallback(objCalculator.ExecuteOperation);
 }
 
