@@ -1,11 +1,20 @@
 // Objeto calculadora.
+
+var ConstantAction = {
+    Sum: 1,
+    Deduct: 2,
+    Multiply: 3,
+    Divide: 4,
+    Execute: 0
+}
+
 var Calculator= {
     PrintObject: undefined,
-    ChainValue: undefined,
     CurrValue: undefined,
     FirstOperator: undefined,
     SecondOperator: undefined,
     PointAdded: false,
+    Operation: undefined,
 
     ShowData: function() {
         if ( PrintObject != undefined ) {
@@ -16,10 +25,10 @@ var Calculator= {
     Initialize: function () {
         PrintObject = document.getElementById("display");
         CurrValue = 0;
-        ChainValue = undefined;
         FirstOperator = undefined;
         SecondOperator = undefined;
         PointAdded = false;
+        Operation = undefined;
     },
 
     CaptureNumber: function() {
@@ -44,8 +53,46 @@ var Calculator= {
             CurrValue += ".";
             PointAdded = true;
         }
-    }
+    },
 
+    SetOperation: function(operationValue) {
+        if ( CurrValue != undefined ) {
+            Operation = operationValue;
+            FirstOperator = parseFloat(CurrValue);
+            CurrValue = "";
+            PointAdded = false;
+        }
+    },
+
+    ExecuteOperation: function() {
+        if ( (FirstOperator != undefined && FirstOperator != 0 ) && 
+             (CurrValue != undefined && parseFloat(CurrValue) != 0 ) ) {
+            SecondOperator = parseFloat(CurrValue);
+
+            switch(Operation) {
+                case ConstantAction.Sum:
+                    CurrValue = ( FirstOperator + SecondOperator );
+                    break;
+                case ConstantAction.Deduct:
+                    CurrValue = ( FirstOperator - SecondOperator );
+                    break;
+                case ConstantAction.Multiply:
+                    CurrValue = ( FirstOperator * SecondOperator );
+                    break;
+                case ConstantAction.Divide:
+                    if ( parseFloat(SecondOperator) == 0 ) {
+                        CurrValue = "Error!";
+                    } else {
+                        CurrValue = ( FirstOperator / SecondOperator );
+                    }
+                    break;
+            }
+
+            Operation = undefined;
+            SecondOperator = undefined;
+            PointAdded = false;
+        }
+    }
 }
 
 // Instancia de la calculadora.
@@ -62,12 +109,31 @@ function Initializing() {
 function ChangingNumber() {
     executeWithCallback(objCalculator.ChangePositiveOrNegative);
 }
+function PointAdding() {
+    executeWithCallback(objCalculator.AddPoint);
+}
 function CapturingNumber(element) {
     objCalculator.CaptureNumber(element);
     objCalculator.ShowData();
 }
-function PointAdding() {
-    executeWithCallback(objCalculator.AddPoint);
+function SendSum() {
+    objCalculator.SetOperation(ConstantAction.Sum);
+    objCalculator.ShowData();
+}
+function SendDeduct() {
+    objCalculator.SetOperation(ConstantAction.Deduct);
+    objCalculator.ShowData();
+}
+function SendMultiply() {
+    objCalculator.SetOperation(ConstantAction.Multiply);
+    objCalculator.ShowData();
+}
+function SendDivide() {
+    objCalculator.SetOperation(ConstantAction.Divide);
+    objCalculator.ShowData();
+}
+function ExecuteOperation() {
+    executeWithCallback(objCalculator.ExecuteOperation);
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -81,4 +147,10 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("on").onclick = Initializing;
     document.getElementById("sign").onclick = ChangingNumber;
     document.getElementById("punto").onclick = PointAdding;
+
+    document.getElementById("mas").onclick = SendSum;
+    document.getElementById("menos").onclick = SendDeduct;
+    document.getElementById("por").onclick = SendMultiply;
+    document.getElementById("dividido").onclick = SendDivide;
+    document.getElementById("igual").onclick = ExecuteOperation;
 });
